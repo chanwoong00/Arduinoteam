@@ -1,0 +1,92 @@
+프로세싱
+import processing.serial.*;
+import processing.net.*;
+
+Serial p;    
+Server s;    
+Client c;  
+String msg = "hi"; 
+
+void setup() {
+  size(400, 400);
+  
+  
+  p = new Serial(this, "COM3", 9600);
+  
+  s = new Server(this, 12345);
+}
+
+void draw() {
+  c = s.available();
+  if (c != null) {
+    String m = c.readString();
+    if (m.indexOf("GET /") == 0) {
+      c.write("HTTP/1.1 200 OK\r\n\r\n");
+      c.write(msg);
+      c.stop(); 
+    }
+    
+    if (m.indexOf("PUT /") == 0) { 
+      int n = m.indexOf("\r\n\r\n") + 4;
+      m = m.substring(n);
+      m += '\n';
+      p.write(m);
+      println(m);
+    }
+  }
+  
+  if (p.available() > 0) { 
+    String m = p.readStringUntil('\n');
+    if (m != null) {
+      msg = m; 
+      println(msg);
+    }
+  }
+}
+
+
+
+
+
+
+아두이노
+void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(7, INPUT_PULLUP);
+  Serial.begin(9600);
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    char command = Serial.read();
+    
+    switch (command) {
+      case '1': // On 버튼
+        digitalWrite(13, HIGH);
+        break;
+        
+      case '2': // Off 버튼
+        digitalWrite(13, LOW);
+        break;
+        
+      case '3': // Song 버튼
+        playSong();
+        break;
+    }
+  }
+}
+
+void playSong() {
+  tone(9, 261.63); // 도 (C4)
+  delay(500);
+  tone(9, 293.66); // 레 (D4)
+  delay(500);
+  tone(9, 329.63); // 미 (E4)
+  delay(500);
+  tone(9, 261.63); // 도 (C4)
+  delay(500);
+  tone(9, 329.63); // 미 (E4)
+  delay(500);
+  tone(9, 392.00); // 솔 (G4)
+  delay(500);
+}
